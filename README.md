@@ -1,4 +1,4 @@
-# Business-Intelligence-Dashboard-for-tracking-a-company-s-pre-sales-quotes
+# Business Intelligence Project - Dashboard For Tracking a Company's Pre-sales Quotes
 
 ![image](https://github.com/user-attachments/assets/436a8eac-9b8a-4f32-bb44-d2afcc98fad6)
 ![image](https://github.com/user-attachments/assets/ef47b7d5-86bd-4fe6-9094-b8066c6236d5)
