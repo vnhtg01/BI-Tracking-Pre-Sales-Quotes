@@ -1,0 +1,84 @@
+services:
+  dbt-core:                                             # Nom du service
+    image: ghcr.io/dbt-labs/dbt-core:1.8.6              # Image DBT version 1.8.6
+    container_name: dbt-core                            # Nom donné au container DBT
+    volumes:                                            # les volumes permettent de partager les fichier entre le container docker et la machine hôte (notre pc)
+      - ../dbt:/usr/app
+      - ../dbt/dbt_profiles:/root/.dbt
+    ports:
+      - "8080:8080"                                     # Expose le port pour accéder à dbt docs serve
+    working_dir: /usr/app                               # Définit le répertoire de travail à l'intérieur du conteneu
+    entrypoint: ["tail", "-f", "/dev/null"]             # Empêche le conteneur de se terminer immédiatement après son démarrage
+    environment:
+      - DBT_ADAPTER_POSTGRES=true                       # dbt doit utiliser le connecteur PostgreSQL
+      - DBT_PROFILE_DIR=/root/.dbt                      # Indique à dbt où trouver le répertoire de profils (profiles.yml) pour la configuration.
+    
+  odoo-web:
+    image: odoo:17.0
+    container_name: odoo-web
+    depends_on:
+      - odoo-postgres
+      - bi-postgres
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=odoo-postgres
+      - USER=miage_dsid
+      - PASSWORD=miage_dsid
+      - DB=postgres
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+
+  odoo-postgres:
+    image: postgres:14
+    container_name: odoo-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=miage_dsid
+      - POSTGRES_USER=miage_dsid
+    ports:
+      - "5433:5432"
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+
+  bi-postgres:
+    image: postgres:16.4
+    container_name: bi-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=miage_dsid
+      - POSTGRES_USER=miage_dsid
+    ports:
+      - "5434:5432"
+    volumes:
+      - bi-db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    depends_on:
+      - odoo-postgres
+      - bi-postgres
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=dsid@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=miage_dsid
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+   
+  json-server:
+    image: clue/json-server
+    container_name: json-server
+    ports:
+      - "3000:80"
+    volumes:
+      - ../json-server-api/db.json:/data/db.json
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
+  bi-db-data:
+  pgadmin-data:
